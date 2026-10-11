@@ -3,6 +3,8 @@ from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 
 @pytest.fixture(scope="module")
@@ -17,11 +19,14 @@ def test_login(driver):
     driver.find_element(By.ID, "user-name").send_keys("standard_user")
     driver.find_element(By.ID, "password").send_keys("secret_sauce")
     driver.find_element(By.ID, "login-button").click()
+    WebDriverWait(driver, 10).until(EC.url_contains("/inventory.html"))
     assert "/inventory.html" in driver.current_url, "error: No se dirigió a la página de inventario después del inicio de sesión"
 
 def test_verificar_pagina_inventario(driver):
     page_title = driver.title
-    section_title = driver.find_element(By.CLASS_NAME, "title").text
+    section_title = WebDriverWait(driver, 10).until(
+        EC.visibility_of_element_located((By.CLASS_NAME, "title"))
+    ).text
     assert section_title == "Products", "error: El título de la sección de inventario no es 'Products'"
     assert page_title == "Swag Labs", "error: El título de la página de inventario no coincide con el esperado"
 
@@ -29,7 +34,7 @@ def test_productos_visibles(driver):
     productos = driver.find_elements(By.CLASS_NAME, "inventory_item")
     assert len(productos) > 0, "error: No se encontraron productos visibles en la página de inventario"
 
-def tes_validar_interfaz_usuario(driver):
+def test_validar_interfaz_usuario(driver):
     # Verificar que el menú de usuario esté presente
     menu_usuario = driver.find_element(By.ID, "react-burger-menu-btn")
     filtro_usuario = driver.find_element(By.CLASS_NAME, "product_sort_container")
